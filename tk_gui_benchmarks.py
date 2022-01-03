@@ -21,7 +21,6 @@ from matplotlib.figure import Figure
 import vispy
 from vispy import scene
 from vispy.app import use_app
-from vispy.io import load_data_file, read_png
 
 def pil_gui_test(arr):
     # https://stackoverflow.com/questions/52459277/convert-a-c-or-numpy-array-to-a-tkinter-photoimage-with-a-minimum-number-of-copi
@@ -42,14 +41,15 @@ def matplotlib_gui_test(arr):
 
     root = tk.Tk()
     
-    start = time.time()
-    
     f = Figure()
-    f.add_subplot(111).imshow(arr)
-    
     canvas = FigureCanvasTkAgg(f,root)
-    canvas.draw()
     canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+    
+    start = time.time()
+ 
+    f.add_subplot(111).imshow(arr)
+    canvas.draw()
+    
     stop = time.time()
     print(f"Matplotlib run took {stop-start} s")
     
@@ -69,22 +69,22 @@ def vispy_gui_test(arr):
     # Set up a viewbox to display the image with interactive pan/zoom
     view = canvas.central_widget.add_view()
     
-    # Create the image
-    start = time.time()
-    image = scene.visuals.Image(arr, interpolation='nearest',
-                                parent=view.scene, method='subdivide')
-    stop = time.time()
-    print(f"Vispy run took {stop-start} s")
-    
     # Set 2D camera (the camera will scale to the contents in the scene)
     view.camera = scene.PanZoomCamera(aspect=1)
     view.camera.flip = (0, 1, 0)
-    view.camera.set_range()
     view.camera.zoom(1.0)
     
     # TODO: This isn't setting the window size correctly.
     # Need to manually expand the window to see the image
     canvas.native.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+    
+    # Create the image
+    start = time.time()
+    image = scene.visuals.Image(arr, interpolation='nearest',
+                                parent=view.scene, method='subdivide')
+    view.camera.set_range()
+    stop = time.time()
+    print(f"Vispy run took {stop-start} s")
     
     app.run()
     
